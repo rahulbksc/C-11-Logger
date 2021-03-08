@@ -1,13 +1,13 @@
-/*
-	Thread-safe simple logger
-	
-*/
 #pragma once
 
 #include <memory>
 #include <mutex>
 #include <string>
 #include <map>
+#include <functional>
+#include <deque>
+#include <condition_variable>
+#include <algorithm>
 
 namespace user {
 
@@ -30,32 +30,30 @@ public:
 
 	~logger(void) = default;
 
-	logger(const logger&) = default;
+	void RegisterHandler(std::string name, callback c);
 
-	logger& operator=(const logger&) = default;
+	void DeRegisterHandler(const std::string& name);
 
-	
-	void registerHandler(std::string name, callback c);
+	void SetLogLevel(log_level l = log_level::debug);
 
-	void logger::deRegisterHandler(const std::string& name);
+	void Debug(const std::string& msg);
 
-	void setLogLevel(log_level l = log_level::debug);
+	void Info(const std::string& msg);
 
-	void debug(const std::string& msg);
+	void Warn(const std::string& msg);
 
-	void info(const std::string& msg);
+	void Error(const std::string& msg);
 
-	void warn(const std::string& msg);
 
-	void error(const std::string& msg);
-
+	void AddMessage(const std::string&  msg ,log_level l);
+	void WriteMessage();
 
 private:
-	log_level m_level;
-	std::mutex m_mutex;
+	log_level level_{log_level::info};
+	std::mutex mutex_;
+	std::deque<std::pair<std::string, log_level>> buffer_;
+	std::condition_variable cv_;
+
 	std::map<std::string,callback> m_log_handlers;
 };
-
-
-
-} // namespace cpp_redis
+}
