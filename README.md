@@ -5,21 +5,20 @@ Requirement was to send log messages on DB (redis or mysql, files and std-out).
 
 usage: 
   
-  logger log;
-	auto cb = [](const std::string& msg)-> void
-	{
-		std::cout << msg << reply << std::endl;		
-	};
+  auto logger = std::make_shared<user::logger>();
 
-	log.registerHandler("myLogger", cb);
+    auto cout_cb = [](const std::string& msg)-> void { std::cout << msg << std::endl; };    
 
-	user::logger::log_level l{ TDataStore::user::log_level::debug };
-	tlogger.setLogLevel(l);
+    std::string file_name = "/tmp/sample_log.txt";
 
-	log.info("Hello logger");
-  log.debug("this would be freaking awesome");
-	log.deRegisterHandler("myLogger");
-	log.debug("I am dead dude");
+    auto file_cb = [ file_name](const std::string& msg)-> void { 
+                                                                std::stringstream in_; in_ << msg << std::endl; 
+                                                                std::ofstream f(file_name,std::ios::app); 
+                                                                f.write(in_.str().data(), in_.str().size());
+                                                                };
+
+    logger->RegisterHandler("stdout", cout_cb);
+    logger->RegisterHandler("file", file_cb);
   
   P.S. This is currently at very early stage.
   
